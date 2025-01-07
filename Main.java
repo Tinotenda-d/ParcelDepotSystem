@@ -1,6 +1,7 @@
 import java.io.*;
 import java.util.*;
-
+import javax.swing.*;
+import java.awt.*;
 
 // Day 1: Core Functionality
 
@@ -209,4 +210,71 @@ class SystemCoordinator {
 
     public QueueOfCustomers getQueue() { return queue; }
     public ParcelMap getParcelMap() { return parcelMap; }
+}
+
+// Day 5: GUI Components
+
+// BasePanel class for maintainability
+abstract class BasePanel extends JPanel {
+    public abstract void updateDisplay(SystemCoordinator coordinator);
+}
+
+// QueuePanel class for displaying the queue of customers
+class QueuePanel extends BasePanel {
+    private JTextArea queueTextArea = new JTextArea(10, 20);
+
+    public QueuePanel() {
+        setLayout(new BorderLayout());
+        queueTextArea.setEditable(false);
+        add(new JScrollPane(queueTextArea), BorderLayout.CENTER);
+    }
+
+    @Override
+    public void updateDisplay(SystemCoordinator coordinator) {
+        StringBuilder queueDisplay = new StringBuilder("Queue:\n");
+        for (Customer customer : coordinator.getQueue().getQueue()) {
+            queueDisplay.append(customer.getName()).append(" - Parcel: ").append(customer.getParcelId()).append("\n");
+        }
+        queueTextArea.setText(queueDisplay.toString());
+    }
+}
+
+// ParcelPanel class for displaying parcels
+class ParcelPanel extends BasePanel {
+    private JTextArea parcelsTextArea = new JTextArea(10, 20);
+
+    public ParcelPanel() {
+        setLayout(new BorderLayout());
+        parcelsTextArea.setEditable(false);
+        add(new JScrollPane(parcelsTextArea), BorderLayout.CENTER);
+    }
+
+    @Override
+    public void updateDisplay(SystemCoordinator coordinator) {
+        StringBuilder parcelsDisplay = new StringBuilder("Parcels:\n");
+        for (ParcelData parcel : coordinator.getParcelMap().getParcels().values()) {
+            parcelsDisplay.append(parcel.getParcelId()).append(" - Status: ").append(parcel.getStatus())
+                    .append(" - Dimensions: ").append(parcel.getDimensionL()).append("x")
+                    .append(parcel.getDimensionW()).append("x")
+                    .append(parcel.getDimensionH()).append("\n");
+        }
+        parcelsTextArea.setText(parcelsDisplay.toString());
+    }
+}
+
+// LogPanel class for displaying logs
+class LogPanel extends BasePanel {
+    private JTextArea logTextArea = new JTextArea(10, 20);
+
+    public LogPanel() {
+        setLayout
+                (new BorderLayout());
+        logTextArea.setEditable(false);
+        add(new JScrollPane(logTextArea), BorderLayout.CENTER);
+    }
+
+    @Override
+    public void updateDisplay(SystemCoordinator coordinator) {
+        logTextArea.setText(Log.getInstance().getLogs().toString());
+    }
 }
