@@ -2,16 +2,16 @@ import java.io.*;
 import java.util.*;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-// Day 1: Core Functionality
-
-// ParcelData class to encapsulate parcel properties (Single Responsibility Principle)
+// ParcelData class to encapsulate parcel properties
 class ParcelData {
-    private String parcelId; // Unique identifier for the parcel
-    private int dimensionL, dimensionW, dimensionH; // Dimensions of the parcel
-    private int weight; // Weight of the parcel
-    private int daysInDepot; // Number of days in the depot
-    private String status; // Parcel status: "Waiting" or "Collected"
+    private String parcelId;
+    private int dimensionL, dimensionW, dimensionH;
+    private int weight;
+    private int daysInDepot;
+    private String status;
 
     public ParcelData(String parcelId, int dimensionL, int dimensionW, int dimensionH, int weight, int daysInDepot) {
         this.parcelId = parcelId;
@@ -20,7 +20,7 @@ class ParcelData {
         this.dimensionH = dimensionH;
         this.weight = weight;
         this.daysInDepot = daysInDepot;
-        this.status = "Waiting"; // Default status
+        this.status = "Waiting";
     }
 
     public String getParcelId() { return parcelId; }
@@ -33,7 +33,6 @@ class ParcelData {
     public void updateStatus(String newStatus) { this.status = newStatus; }
 }
 
-// FeeCalculator class to handle fee calculation
 class FeeCalculator {
     public static double calculateFee(ParcelData parcel) {
         double baseFee = 5.0;
@@ -43,12 +42,9 @@ class FeeCalculator {
     }
 }
 
-// Day 2: Queue and Map Management
-
-// Customer class to encapsulate customer-related data
 class Customer {
-    private String name; // Name of the customer
-    private String parcelId; // Parcel ID for the customer
+    private String name;
+    private String parcelId;
 
     public Customer(String name, String parcelId) {
         this.name = name;
@@ -59,7 +55,6 @@ class Customer {
     public String getParcelId() { return parcelId; }
 }
 
-// QueueOfCustomers class for queue management
 class QueueOfCustomers {
     private Queue<Customer> queue = new LinkedList<>();
     private Log log = Log.getInstance();
@@ -82,7 +77,6 @@ class QueueOfCustomers {
     public Queue<Customer> getQueue() { return queue; }
 }
 
-// ParcelMap class for managing parcels
 class ParcelMap {
     private Map<String, ParcelData> parcels = new HashMap<>();
     private Log log = Log.getInstance();
@@ -105,9 +99,6 @@ class ParcelMap {
     public Map<String, ParcelData> getParcels() { return parcels; }
 }
 
-// Day 3: Logging and Processing
-
-// Log class (Singleton pattern) for event logging
 class Log {
     private static Log instance;
     private StringBuilder logs = new StringBuilder();
@@ -128,7 +119,6 @@ class Log {
     public StringBuilder getLogs() { return logs; }
 }
 
-// Worker class for processing customers
 class Worker {
     private ParcelMap parcelMap;
     private Log log = Log.getInstance();
@@ -153,9 +143,6 @@ class Worker {
     }
 }
 
-// Day 4: Data Loading and Coordination
-
-// DataLoader class to load data from files
 class DataLoader {
     public static QueueOfCustomers loadCustomers(String customerFile) throws IOException {
         QueueOfCustomers queue = new QueueOfCustomers();
@@ -185,7 +172,6 @@ class DataLoader {
     }
 }
 
-// SystemCoordinator class for main processing logic
 class SystemCoordinator {
     private QueueOfCustomers queue;
     private ParcelMap parcelMap;
@@ -212,14 +198,10 @@ class SystemCoordinator {
     public ParcelMap getParcelMap() { return parcelMap; }
 }
 
-// Day 5: GUI Components
-
-// BasePanel class for maintainability
 abstract class BasePanel extends JPanel {
     public abstract void updateDisplay(SystemCoordinator coordinator);
 }
 
-// QueuePanel class for displaying the queue of customers
 class QueuePanel extends BasePanel {
     private JTextArea queueTextArea = new JTextArea(10, 20);
 
@@ -239,7 +221,6 @@ class QueuePanel extends BasePanel {
     }
 }
 
-// ParcelPanel class for displaying parcels
 class ParcelPanel extends BasePanel {
     private JTextArea parcelsTextArea = new JTextArea(10, 20);
 
@@ -262,13 +243,11 @@ class ParcelPanel extends BasePanel {
     }
 }
 
-// LogPanel class for displaying logs
 class LogPanel extends BasePanel {
     private JTextArea logTextArea = new JTextArea(10, 20);
 
     public LogPanel() {
-        setLayout
-                (new BorderLayout());
+        setLayout(new BorderLayout());
         logTextArea.setEditable(false);
         add(new JScrollPane(logTextArea), BorderLayout.CENTER);
     }
@@ -276,5 +255,55 @@ class LogPanel extends BasePanel {
     @Override
     public void updateDisplay(SystemCoordinator coordinator) {
         logTextArea.setText(Log.getInstance().getLogs().toString());
+    }
+}
+
+class ParcelGUI extends JFrame {
+    private QueuePanel queuePanel;
+    private ParcelPanel parcelPanel;
+    private LogPanel logPanel;
+
+    public ParcelGUI(SystemCoordinator coordinator) {
+        setTitle("Parcel Depot Management");
+        setSize(800, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+
+        queuePanel = new QueuePanel();
+        parcelPanel = new ParcelPanel();
+        logPanel = new LogPanel();
+
+        add(queuePanel, BorderLayout.WEST);
+        add(parcelPanel, BorderLayout.CENTER);
+        add(logPanel, BorderLayout.EAST);
+
+        JPanel buttonsPanel = new JPanel();
+        JButton processButton = new JButton("Process Next Customer");
+        processButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                coordinator.processQueue();
+                updateDisplays(coordinator);
+            }
+        });
+        buttonsPanel.add(processButton);
+        add(buttonsPanel, BorderLayout.SOUTH);
+
+        updateDisplays(coordinator);
+    }
+
+    private void updateDisplays(SystemCoordinator coordinator) {
+        queuePanel.updateDisplay(coordinator);
+        parcelPanel.updateDisplay(coordinator);
+        logPanel.updateDisplay(coordinator);
+    }
+
+    public static void main(String[] args) {
+        try {
+            SystemCoordinator coordinator = new SystemCoordinator("Custs.csv", "Parcels.csv");
+            SwingUtilities.invokeLater(() -> new ParcelGUI(coordinator).setVisible(true));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
